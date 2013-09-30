@@ -33,15 +33,24 @@ namespace Lab_2___T9_Dictionary
         bool isSingleClick;
         System.Windows.Forms.Timer timer;
         static int clickCount;
+
+        // appendChar appends each character in Non-Predictive mode
         String appendChar;
+
         static bool toggleNextWord;
+
+        // counterForDisplay is used to display the word from a list
+        // at the position which is equal to counterForDisplay's value
         static int counterForDisplay = 0;
 
-        Dictionary<String, List<String>> validWords = new Dictionary<String, List<String>>();
+        // The dictionary class is used to store all valid words from english-words.txt
+        Dictionary<String, List<String>> validWords;
 
-        static StringBuilder inputKey = new StringBuilder("");
+        // inputKey is used to store the pressed keys in Predictive mode
+        static StringBuilder inputKey;
+
         static List<String> displayToUser;
- 
+
         /// <summary>
         /// Initializes all the data members and sets interval for the timer.
         /// </summary>
@@ -51,9 +60,14 @@ namespace Lab_2___T9_Dictionary
             isSingleClick = true;
             isPredictive = true;
             toggleNextWord = true;
+
             timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000;
             timer.Tick += new EventHandler(TimerEventProcessor);
+
+            inputKey = new StringBuilder("");
+            validWords = new Dictionary<String, List<String>>();
+
             readFromWordsText();
         }
 
@@ -114,6 +128,12 @@ namespace Lab_2___T9_Dictionary
             }
         }
 
+        /// <summary>
+        /// This methods generates the HashKey for each word to be 
+        /// stored in the linked hashtable.
+        /// </summary>
+        /// <param name="line">Word for which Hashkey is required</param>
+        /// <returns>Hashkey</returns>
         String generateKey(String line)
         {
             char[] charArray = line.ToCharArray();
@@ -148,94 +168,144 @@ namespace Lab_2___T9_Dictionary
             return stringValue.ToString();
         }
 
+        /// <summary>
+        /// This method is called in Predictive mode after each valid button press
+        /// to update the display text field for the user
+        /// </summary>
         public void displayToUserList()
         {
             String newText = textBox1.Text;
-            String noHyphenPrefix = newText;
-            if (!newText.Contains(" "))
+            // Only if the text field currently does not contain any hyphens
+            // the following code will be executed and displayed to the user
+            if (!newText.Contains("-"))
             {
-                newText = "";
-                String forKey = inputKey.ToString();
+                String noHyphenPrefix = newText;
 
-                if (!validWords.ContainsKey(forKey))
+                if (!newText.Contains(" "))
                 {
-                    foreach(String key in validWords.Keys)
+                    newText = "";
+
+                    String forKey = inputKey.ToString();
+
+                    // If there are no valid words for the input type so far
+                    if (!validWords.ContainsKey(forKey))
                     {
-                        if (key.StartsWith(forKey))
+                        // Checks if there are valid prefixes
+                        foreach (String key in validWords.Keys)
                         {
-                            List<String> tempPrefix = null;
-                            validWords.TryGetValue(key, out tempPrefix);
-                            if (tempPrefix != null)
+                            if (key.StartsWith(forKey))
                             {
-                                foreach (String word in tempPrefix)
+                                List<String> tempPrefix = null;
+                                validWords.TryGetValue(key, out tempPrefix);
+                                if (tempPrefix != null)
                                 {
-                                    textBox1.Text = word.Substring(0,inputKey.Length);
-                                    break;
+                                    foreach (String word in tempPrefix)
+                                    {
+                                        // Displays the valid prefix
+                                        textBox1.Text = word.Substring(0, inputKey.Length);
+                                        break;
+                                    }
                                 }
+                                break;
                             }
+                            // If there are not valid prefixes hyphens are displayed
+                            // whose length is equal to the number of valid keypad presses
+                            else
+                            {
+                                StringBuilder hyphenString = new StringBuilder("");
+                                for (int i = 0; i < inputKey.Length; i++)
+                                {
+                                    hyphenString.Append("-");
+                                }
+                                textBox1.Text = hyphenString.ToString();
+                            }
+                        }
+                        toggleNextWord = false;
+                    }
+
+                    // If there are valid words for the input typed so far
+                    if (validWords.ContainsKey(forKey))
+                    {
+                        validWords.TryGetValue(forKey, out displayToUser);
+
+                        // Displays the first element in the list
+                        foreach (String word in displayToUser)
+                        {
+                            textBox1.Text = word;
+                            // increments count to display next element in the list
+                            // when 0/~ button is pressed.
+                            counterForDisplay = 1;
                             break;
                         }
                     }
-                    toggleNextWord = false;
                 }
-
-                if (validWords.ContainsKey(forKey))
+                else if (newText.Contains(" "))
                 {
-                    validWords.TryGetValue(forKey, out displayToUser);
+                    // Gets the text value from Text Field
+                    // Stores the words in newPrefix till before the last space
 
-                    foreach (String word in displayToUser)
+                    String[] words = newText.Split(' ');
+                    StringBuilder prefixWords = new StringBuilder("");
+                    for (int i = 0; i < words.Length - 1; i++)
                     {
-                        textBox1.Text = word;
-                        counterForDisplay=1;
-                        break;
-                   }
-                }
-            }
-            else if (newText.Contains(" "))
-            {
-                Console.WriteLine("I am in with space");
-                String[] words = newText.Split(' ');
-                StringBuilder prefixWords = new StringBuilder("");
-                for (int i = 0; i < words.Length - 1; i++)
-                {
-                    prefixWords.Append(words[i] + " ");
-                }
-                String newPrefix = prefixWords.ToString();
-
-                String forKey = inputKey.ToString();
-
-                if (!validWords.ContainsKey(forKey))
-                {
-                    foreach (String key in validWords.Keys)
-                    {
-                        if (key.StartsWith(forKey))
-                        {
-                            List<String> tempPrefix = null;
-                            validWords.TryGetValue(key, out tempPrefix);
-                            if (tempPrefix != null)
-                            {
-                                foreach (String word in tempPrefix)
-                                {
-                                    textBox1.Text = newPrefix + word.Substring(0, inputKey.Length);
-                                    break;
-                                }
-                            }
-                            break;
-                        }
+                        prefixWords.Append(words[i] + " ");
                     }
-                    toggleNextWord = false;
-                }
+                    String newPrefix = prefixWords.ToString();
 
-                if (validWords.ContainsKey(forKey))
-                {
-                    Console.WriteLine("has key - " + forKey);
-                    validWords.TryGetValue(forKey, out displayToUser);
+                    String forKey = inputKey.ToString();
 
-                    foreach (String word in displayToUser)
+                    // If there are no valid words for the input type so far
+                    if (!validWords.ContainsKey(forKey))
                     {
+                        // Checks if there are valid prefixes
+                        foreach (String key in validWords.Keys)
+                        {
+                            if (key.StartsWith(forKey))
+                            {
+                                List<String> tempPrefix = null;
+                                validWords.TryGetValue(key, out tempPrefix);
+                                if (tempPrefix != null)
+                                {
+                                    foreach (String word in tempPrefix)
+                                    {
+                                        // Displays the valid prefix
+                                        textBox1.Text = newPrefix + word.Substring(0, inputKey.Length);
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+
+                            // If there are not valid prefixes hyphens are displayed
+                            // whose length is equal to the number of valid keypad presses
+                            else
+                            {
+                                StringBuilder hyphenString = new StringBuilder("");
+                                for (int i = 0; i < inputKey.Length; i++)
+                                {
+                                    hyphenString.Append("-");
+                                }
+                                textBox1.Text = newPrefix + hyphenString.ToString();
+                            }
+                        }
+                        toggleNextWord = false;
+                    }
+
+                    // If there are valid words for the input typed so far
+                    if (validWords.ContainsKey(forKey))
+                    {
+                        validWords.TryGetValue(forKey, out displayToUser);
+
+                        foreach (String word in displayToUser)
+                        {
+                            // Displays the first element in the list
                             textBox1.Text = newPrefix + word;
-                            counterForDisplay=1;
+
+                            // increments count to display next element in the list
+                            // when 0/~ button is pressed.
+                            counterForDisplay = 1;
                             break;
+                        }
                     }
                 }
             }
@@ -725,7 +795,8 @@ namespace Lab_2___T9_Dictionary
         }
 
         /// <summary>
-        /// Erases the last character in Non-Predictive Mode
+        /// Erases the last character in Non-Predictive Mode 
+        /// and the last space or last word in Predictive Mode
         /// </summary>
         /// <param name="sender">Root of type hierarchy</param>
         /// <param name="e">Contains state information and event data
@@ -745,6 +816,42 @@ namespace Lab_2___T9_Dictionary
                     trimmedText = "";
                 }
                 textBox1.Text = trimmedText;
+            }
+
+            else if (isPredictive)
+            {
+                String text = textBox1.Text;
+                if (!text.Contains(" "))
+                {
+                    textBox1.Text = "";
+                }
+
+                // Trims the text string after the last space
+                else if (text.Contains(" "))
+                {
+                    // Deletes a space at the end of the text
+                    char[] forLastPosition = text.ToCharArray();
+                    if (forLastPosition[forLastPosition.Length - 1] == ' ')
+                    {
+                        textBox1.Text = text.Substring(0, text.Length - 1);
+                        return;
+                    }
+
+                    // Deletes the word at the end of the text
+                    text = textBox1.Text;
+                    String[] words = text.Split(' ');
+                    StringBuilder trimmedText = new StringBuilder("");
+                    for (int i = 0; i < words.Length - 1; i++)
+                    {
+                        trimmedText.Append(words[i] + " ");
+                    }
+
+                    textBox1.Text = trimmedText.ToString();
+                }
+
+                
+                inputKey = new StringBuilder("");
+                displayToUser = null;
             }
         }
 
@@ -770,6 +877,11 @@ namespace Lab_2___T9_Dictionary
             {
                 if (!isPredictive)
                 {
+                    // Clears the entire text field while switching from
+                    // Non-predictive mode to Predictive mode
+                    inputKey = new StringBuilder("");
+                    displayToUser = null;
+                    textBox1.Text = "";
                     isPredictive = true;
                 }
                 button13.Content = "Predictive Mode: ON";
@@ -784,37 +896,35 @@ namespace Lab_2___T9_Dictionary
         ///  associated with a routed event</param>
         private void button12_Click(object sender, RoutedEventArgs e)
         {
-            if (!isPredictive)
+            String getText = textBox1.Text;
+            // Appends a space only if the string has all words and no hyphens
+            if (!getText.Contains("-"))
             {
-                if (isSingleClick)
+                if (!isPredictive)
                 {
-                    timer.Start();
-                    appendChar = " ";
-                    isSingleClick = false;
+                    if (isSingleClick)
+                    {
+                        timer.Start();
+                        appendChar = " ";
+                        isSingleClick = false;
+                    }
                 }
-            }
 
-            else if (isPredictive)
-            {
-                String text = textBox1.Text;
-                String newText = "";
-                //if (!validWords.ContainsKey(forKey))
-                //{
-                //    for (int i = 0; i < forKey.Length; i++)
-                //    {
-                //        newText += "-";
-                //    }
-                //    textBox1.Text = newText;
-                //    return;
-                //}
+                else if (isPredictive)
+                {
+                    String text = textBox1.Text;
+                    String newText = "";
+                    newText = text + " ";
+                    textBox1.Text = newText;
+                    inputKey = new StringBuilder("");
+                    displayToUser = null;
+                }
 
-                newText = text + " ";
-                textBox1.Text = newText;
-                inputKey = new StringBuilder("");
-                displayToUser = null;
+                // Enables toggling for the next word when a user types
+                toggleNextWord = true;
+                // Resets the counter value for next word
+                counterForDisplay = 0;
             }
-            toggleNextWord = true;
-            counterForDisplay = 0;
         }
 
         /// <summary>
@@ -825,8 +935,12 @@ namespace Lab_2___T9_Dictionary
         ///  associated with a routed event</param>
         private void button11_Click(object sender, RoutedEventArgs e)
         {
+            // Increments the counter to let the method know which value from the
+            // list needs to be displayed to the user.
             counterForDisplay++;
             String text = textBox1.Text;
+
+            // If toggling is allowed
             if (toggleNextWord)
             {
                 if (text.Contains(" "))
@@ -838,14 +952,15 @@ namespace Lab_2___T9_Dictionary
                         prefixWords.Append(words[i] + " ");
                     }
                     String newPrefix = prefixWords.ToString();
-                    Console.WriteLine(newPrefix);
 
+                    // If there are words which can be displayed to the user
                     if (displayToUser != null)
                     {
+                        // temp counter is used to check if the word from the
+                        // list can be displayed to the user or skipped
                         int temp = 1;
                         foreach (String word in displayToUser)
                         {
-                            Console.WriteLine("I am toggling - 1 - " + word);
                             if (temp == counterForDisplay)
                             {
                                 textBox1.Text = newPrefix + word;
@@ -860,18 +975,23 @@ namespace Lab_2___T9_Dictionary
                 }
                 else if (!text.Contains(" "))
                 {
-                    int temp = 1;
-                    foreach (String word in displayToUser)
+                    // If there are words which can be displayed to the user
+                    if (displayToUser != null)
                     {
-                        Console.WriteLine("I am toggling - 2 - " + word);
-                        if (temp == counterForDisplay)
+                        // temp counter is used to check if the word from the
+                        // list can be displayed to the user or skipped
+                        int temp = 1;
+                        foreach (String word in displayToUser)
                         {
-                            textBox1.Text = word;
-                            break;
-                        }
-                        else
-                        {
-                            temp++;
+                            if (temp == counterForDisplay)
+                            {
+                                textBox1.Text = word;
+                                break;
+                            }
+                            else
+                            {
+                                temp++;
+                            }
                         }
                     }
                 }
