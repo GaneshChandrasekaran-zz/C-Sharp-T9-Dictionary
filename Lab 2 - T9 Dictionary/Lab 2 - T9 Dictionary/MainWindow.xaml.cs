@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Forms;
+using System.IO;
 
 ///
 /// Author name: Ganesh Chandrasekaran
@@ -30,9 +31,16 @@ namespace Lab_2___T9_Dictionary
     {
         bool isPredictive;
         bool isSingleClick;
-        Timer timer;
+        System.Windows.Forms.Timer timer;
         static int clickCount;
         String appendChar;
+
+        Dictionary<String, List<String>> validWords = new Dictionary<String, List<String>>();
+
+        static StringBuilder inputKey = new StringBuilder("");
+        static List<String> displayToUser;
+        // static int counterForWords = 0;
+
 
         /// <summary>
         /// Initializes all the data members and sets interval for the timer.
@@ -42,9 +50,11 @@ namespace Lab_2___T9_Dictionary
             InitializeComponent();
             isSingleClick = true;
             isPredictive = true;
-            timer = new Timer();
+            timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000;
             timer.Tick += new EventHandler(TimerEventProcessor);
+            readFromWordsText();
+
         }
 
         /// <summary>
@@ -62,6 +72,152 @@ namespace Lab_2___T9_Dictionary
 
             isSingleClick = true;
         }
+
+        /// <summary>
+        /// This method reads from the text file containing list of all valid words and stores 
+        /// it in a linked hash table.
+        /// </summary>
+        public void readFromWordsText()
+        {
+            try
+            {
+                StreamReader sr = new StreamReader("C:\\Users\\GANESH\\Documents\\Visual Studio 2010\\Projects\\Lab 2 - T9 Dictionary\\Lab 2 - T9 Dictionary\\words.txt");
+
+                while (true)
+                {
+                    String line = sr.ReadLine();
+
+                    if (line == null)
+                    {
+                        break;
+                    }
+                    String key = generateKey(line.ToLower());
+                    List<String> tempList;
+                    validWords.TryGetValue(key, out tempList);
+                    if (tempList == null)
+                    {
+                        tempList = new List<String>();
+                        tempList.Add(line);
+                        validWords.Add(key, tempList);
+                        //    Console.WriteLine("Key: " + key + "   Value: " + line);
+                    }
+                    else
+                    {
+                        tempList.Add(line);
+                        //  Console.WriteLine("Key: " + key + "   Value: " + line);
+                    }
+                    //validWords.Add(key,line);
+
+                    // Console.WriteLine(line);
+                    //  i++;
+                }
+                //Console.WriteLine(i);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("The file could not be read:");
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
+            }
+        }
+
+        String generateKey(String line)
+        {
+            char[] charArray = line.ToCharArray();
+            StringBuilder stringValue = new StringBuilder("");
+            foreach (char ch in charArray)
+            {
+                if (ch == 'a' || ch == 'b' || ch == 'c')
+                    stringValue.Append(2);
+
+                if (ch == 'd' || ch == 'e' || ch == 'f')
+                    stringValue.Append(3);
+
+                if (ch == 'g' || ch == 'h' || ch == 'i')
+                    stringValue.Append(4);
+
+                if (ch == 'j' || ch == 'k' || ch == 'l')
+                    stringValue.Append(5);
+
+                if (ch == 'm' || ch == 'n' || ch == 'o')
+                    stringValue.Append(6);
+
+                if (ch == 'p' || ch == 'q' || ch == 'r' || ch == 's')
+                    stringValue.Append(7);
+
+                if (ch == 't' || ch == 'u' || ch == 'v')
+                    stringValue.Append(8);
+
+                if (ch == 'w' || ch == 'x' || ch == 'y' || ch == 'z')
+                    stringValue.Append(9);
+            }
+
+            return stringValue.ToString();
+        }
+
+        public void displayToUserList()
+        {
+            String newText = textBox1.Text;
+            if (!newText.Contains(" "))
+            {
+                String forKey = inputKey.ToString();
+
+                if (!validWords.ContainsKey(forKey))
+                {
+                    for (int i = 0; i < forKey.Length; i++)
+                    {
+                        newText += "-";
+                    }
+                    textBox1.Text = newText;
+                }
+
+                if (validWords.ContainsKey(forKey))
+                {
+                    validWords.TryGetValue(forKey, out displayToUser);
+
+                    foreach (String word in displayToUser)
+                    {
+                        textBox1.Text = word;
+                        displayToUser.Remove(word);
+                        break;
+                    }
+                }
+            }
+            else if (newText.Contains(" "))
+            {
+                String[] words = newText.Split(' ');
+                StringBuilder prefixWords = new StringBuilder("");
+                for (int i = 0; i < words.Length - 1; i++)
+                {
+                    prefixWords.Append(words[i] + " ");
+                }
+                String newPrefix = prefixWords.ToString();
+
+                String forKey = inputKey.ToString();
+
+                if (!validWords.ContainsKey(forKey))
+                {
+                    for (int i = 0; i < forKey.Length; i++)
+                    {
+                        newText += "-";
+                    }
+                    textBox1.Text = newPrefix + newText;
+                }
+
+                if (validWords.ContainsKey(forKey))
+                {
+                    validWords.TryGetValue(forKey, out displayToUser);
+
+                    foreach (String word in displayToUser)
+                    {
+                        textBox1.Text = newPrefix + word;
+                        displayToUser.Remove(word);
+                        break;
+                    }
+                }
+            }
+        }
+
 
         /// <summary>
         /// Handles single click event for Keypad button 2.
@@ -93,6 +249,11 @@ namespace Lab_2___T9_Dictionary
                 {
                     appendChar = "c";
                 }
+            }
+            else if (isPredictive)
+            {
+                inputKey.Append("2");
+                displayToUserList();
             }
         }
 
@@ -148,6 +309,12 @@ namespace Lab_2___T9_Dictionary
                     appendChar = "f";
                 }
             }
+
+            else if (isPredictive)
+            {
+                inputKey.Append("3");
+                displayToUserList();
+            }
         }
 
         /// <summary>
@@ -201,6 +368,11 @@ namespace Lab_2___T9_Dictionary
                 {
                     appendChar = "i";
                 }
+            }
+            else if (isPredictive)
+            {
+                inputKey.Append("4");
+                displayToUserList();
             }
         }
 
@@ -256,6 +428,11 @@ namespace Lab_2___T9_Dictionary
                     appendChar = "l";
                 }
             }
+            else if (isPredictive)
+            {
+                inputKey.Append("5");
+                displayToUserList();
+            }
         }
 
         /// <summary>
@@ -309,6 +486,11 @@ namespace Lab_2___T9_Dictionary
                 {
                     appendChar = "o";
                 }
+            }
+            else if (isPredictive)
+            {
+                inputKey.Append("6");
+                displayToUserList();
             }
         }
 
@@ -368,6 +550,12 @@ namespace Lab_2___T9_Dictionary
                     appendChar = "s";
                 }
             }
+
+            else if (isPredictive)
+            {
+                inputKey.Append("7");
+                displayToUserList();
+            }
         }
 
         /// <summary>
@@ -422,6 +610,12 @@ namespace Lab_2___T9_Dictionary
                 {
                     appendChar = "v";
                 }
+            }
+
+            else if (isPredictive)
+            {
+                inputKey.Append("8");
+                displayToUserList();
             }
         }
 
@@ -480,7 +674,12 @@ namespace Lab_2___T9_Dictionary
                 {
                     appendChar = "z";
                 }
+            }
 
+            else if (isPredictive)
+            {
+                inputKey.Append("9");
+                displayToUserList();
             }
         }
 
@@ -572,6 +771,72 @@ namespace Lab_2___T9_Dictionary
                     timer.Start();
                     appendChar = " ";
                     isSingleClick = false;
+                }
+            }
+
+            else if (isPredictive)
+            {
+                String text = textBox1.Text;
+
+                //String forKey = inputKey.ToString();
+
+                String newText = "";
+                //if (!validWords.ContainsKey(forKey))
+                //{
+                //    for (int i = 0; i < forKey.Length; i++)
+                //    {
+                //        newText += "-";
+                //    }
+                //    textBox1.Text = newText;
+                //    return;
+                //}
+
+                newText = text + " ";
+
+                textBox1.Text = newText;
+                inputKey = new StringBuilder("");
+                displayToUser = null;
+            }
+        }
+
+        /// <summary>
+        /// This method fetches next valid word for the user text display
+        /// </summary>
+        /// <param name="sender">Root of type hierarchy</param>
+        /// <param name="e">Contains state information and event data
+        ///  associated with a routed event</param>
+        private void button11_Click(object sender, RoutedEventArgs e)
+        {
+            String text = textBox1.Text;
+
+            if (text.Contains(" "))
+            {
+                String[] words = text.Split(' ');
+                StringBuilder prefixWords = new StringBuilder("");
+                for (int i = 0; i < words.Length - 1; i++)
+                {
+                    prefixWords.Append(words[i] + " ");
+                }
+                String newPrefix = prefixWords.ToString();
+                Console.WriteLine(newPrefix);
+
+                if (displayToUser != null)
+                {
+                    foreach (String word in displayToUser)
+                    {
+                        textBox1.Text = newPrefix + word;
+                        displayToUser.Remove(word);
+                        break;
+                    }
+                }
+            }
+            else if (!text.Contains(" "))
+            {
+                foreach (String word in displayToUser)
+                {
+                    textBox1.Text = word;
+                    displayToUser.Remove(word);
+                    break;
                 }
             }
         }

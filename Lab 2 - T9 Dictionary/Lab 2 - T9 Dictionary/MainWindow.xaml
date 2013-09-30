@@ -14,9 +14,9 @@
                 <Button Height="23" HorizontalAlignment="Left" Margin="14,104,0,0" Name="button7" VerticalAlignment="Top" Width="75" Content="7 pqrs" Click="button7_Click" MouseDoubleClick="button7_MouseDoubleClick"/>
                 <Button Content="8 tuv" Height="23" HorizontalAlignment="Left" Margin="117,104,0,0" Name="button8" VerticalAlignment="Top" Width="75" Click="button8_Click" MouseDoubleClick="button8_MouseDoubleClick"/>
                 <Button Content="9 wxyz" Height="23" HorizontalAlignment="Right" Margin="0,104,14,0" Name="button9" VerticalAlignment="Top" Width="75" Click="button9_Click" MouseDoubleClick="button9_MouseDoubleClick"/>
-                <Button Content="* i" Height="23" HorizontalAlignment="Left" Margin="14,152,0,0" Name="button10" VerticalAlignment="Top" Width="75" Click="button10_Click" />
-                <Button Content="0" Height="23" HorizontalAlignment="Left" Margin="117,152,0,0" Name="button11" VerticalAlignment="Top" Width="75" />
-                <Button Content="# (space)" Height="23" HorizontalAlignment="Right" Margin="0,152,14,0" Name="button12" VerticalAlignment="Top" Width="75" Click="button12_Click" />
+                <Button Content="* &lt;" Height="23" HorizontalAlignment="Left" Margin="14,152,0,0" Name="button10" VerticalAlignment="Top" Width="75" Click="button10_Click" />
+                <Button Content="0 `" Height="23" HorizontalAlignment="Left" Margin="117,152,0,0" Name="button11" VerticalAlignment="Top" Width="75" Click="button11_Click" />
+                <Button Content="#" Height="23" HorizontalAlignment="Right" Margin="0,152,14,0" Name="button12" VerticalAlignment="Top" Width="75" Click="button12_Click" />
                 <Button Content="Predictive Mode: ON" Height="23" HorizontalAlignment="Left" Margin="90,207,0,0" Name="button13" VerticalAlignment="Top" Width="130" Click="button13_Click" />
             </Grid>
         </Border>
