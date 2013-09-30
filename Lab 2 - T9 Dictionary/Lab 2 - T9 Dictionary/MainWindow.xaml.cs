@@ -34,14 +34,14 @@ namespace Lab_2___T9_Dictionary
         System.Windows.Forms.Timer timer;
         static int clickCount;
         String appendChar;
+        static bool toggleNextWord;
+        static int counterForDisplay = 0;
 
         Dictionary<String, List<String>> validWords = new Dictionary<String, List<String>>();
 
         static StringBuilder inputKey = new StringBuilder("");
         static List<String> displayToUser;
-        // static int counterForWords = 0;
-
-
+ 
         /// <summary>
         /// Initializes all the data members and sets interval for the timer.
         /// </summary>
@@ -50,11 +50,11 @@ namespace Lab_2___T9_Dictionary
             InitializeComponent();
             isSingleClick = true;
             isPredictive = true;
+            toggleNextWord = true;
             timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000;
             timer.Tick += new EventHandler(TimerEventProcessor);
             readFromWordsText();
-
         }
 
         /// <summary>
@@ -99,19 +99,12 @@ namespace Lab_2___T9_Dictionary
                         tempList = new List<String>();
                         tempList.Add(line);
                         validWords.Add(key, tempList);
-                        //    Console.WriteLine("Key: " + key + "   Value: " + line);
                     }
                     else
                     {
                         tempList.Add(line);
-                        //  Console.WriteLine("Key: " + key + "   Value: " + line);
                     }
-                    //validWords.Add(key,line);
-
-                    // Console.WriteLine(line);
-                    //  i++;
                 }
-                //Console.WriteLine(i);
             }
             catch (Exception e)
             {
@@ -158,17 +151,32 @@ namespace Lab_2___T9_Dictionary
         public void displayToUserList()
         {
             String newText = textBox1.Text;
+            String noHyphenPrefix = newText;
             if (!newText.Contains(" "))
             {
+                newText = "";
                 String forKey = inputKey.ToString();
 
                 if (!validWords.ContainsKey(forKey))
                 {
-                    for (int i = 0; i < forKey.Length; i++)
+                    foreach(String key in validWords.Keys)
                     {
-                        newText += "-";
+                        if (key.StartsWith(forKey))
+                        {
+                            List<String> tempPrefix = null;
+                            validWords.TryGetValue(key, out tempPrefix);
+                            if (tempPrefix != null)
+                            {
+                                foreach (String word in tempPrefix)
+                                {
+                                    textBox1.Text = word.Substring(0,inputKey.Length);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                     }
-                    textBox1.Text = newText;
+                    toggleNextWord = false;
                 }
 
                 if (validWords.ContainsKey(forKey))
@@ -178,13 +186,14 @@ namespace Lab_2___T9_Dictionary
                     foreach (String word in displayToUser)
                     {
                         textBox1.Text = word;
-                        displayToUser.Remove(word);
+                        counterForDisplay=1;
                         break;
-                    }
+                   }
                 }
             }
             else if (newText.Contains(" "))
             {
+                Console.WriteLine("I am in with space");
                 String[] words = newText.Split(' ');
                 StringBuilder prefixWords = new StringBuilder("");
                 for (int i = 0; i < words.Length - 1; i++)
@@ -197,27 +206,40 @@ namespace Lab_2___T9_Dictionary
 
                 if (!validWords.ContainsKey(forKey))
                 {
-                    for (int i = 0; i < forKey.Length; i++)
+                    foreach (String key in validWords.Keys)
                     {
-                        newText += "-";
+                        if (key.StartsWith(forKey))
+                        {
+                            List<String> tempPrefix = null;
+                            validWords.TryGetValue(key, out tempPrefix);
+                            if (tempPrefix != null)
+                            {
+                                foreach (String word in tempPrefix)
+                                {
+                                    textBox1.Text = newPrefix + word.Substring(0, inputKey.Length);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                     }
-                    textBox1.Text = newPrefix + newText;
+                    toggleNextWord = false;
                 }
 
                 if (validWords.ContainsKey(forKey))
                 {
+                    Console.WriteLine("has key - " + forKey);
                     validWords.TryGetValue(forKey, out displayToUser);
 
                     foreach (String word in displayToUser)
                     {
-                        textBox1.Text = newPrefix + word;
-                        displayToUser.Remove(word);
-                        break;
+                            textBox1.Text = newPrefix + word;
+                            counterForDisplay=1;
+                            break;
                     }
                 }
             }
         }
-
 
         /// <summary>
         /// Handles single click event for Keypad button 2.
@@ -243,7 +265,6 @@ namespace Lab_2___T9_Dictionary
                     appendChar = "a";
                     isSingleClick = false;
                     clickCount = 0;
-
                 }
                 else if (clickCount == 3)
                 {
@@ -604,7 +625,6 @@ namespace Lab_2___T9_Dictionary
                     appendChar = "t";
                     isSingleClick = false;
                     clickCount = 0;
-
                 }
                 else if (clickCount == 3)
                 {
@@ -777,9 +797,6 @@ namespace Lab_2___T9_Dictionary
             else if (isPredictive)
             {
                 String text = textBox1.Text;
-
-                //String forKey = inputKey.ToString();
-
                 String newText = "";
                 //if (!validWords.ContainsKey(forKey))
                 //{
@@ -792,11 +809,12 @@ namespace Lab_2___T9_Dictionary
                 //}
 
                 newText = text + " ";
-
                 textBox1.Text = newText;
                 inputKey = new StringBuilder("");
                 displayToUser = null;
             }
+            toggleNextWord = true;
+            counterForDisplay = 0;
         }
 
         /// <summary>
@@ -807,36 +825,55 @@ namespace Lab_2___T9_Dictionary
         ///  associated with a routed event</param>
         private void button11_Click(object sender, RoutedEventArgs e)
         {
+            counterForDisplay++;
             String text = textBox1.Text;
-
-            if (text.Contains(" "))
+            if (toggleNextWord)
             {
-                String[] words = text.Split(' ');
-                StringBuilder prefixWords = new StringBuilder("");
-                for (int i = 0; i < words.Length - 1; i++)
+                if (text.Contains(" "))
                 {
-                    prefixWords.Append(words[i] + " ");
-                }
-                String newPrefix = prefixWords.ToString();
-                Console.WriteLine(newPrefix);
-
-                if (displayToUser != null)
-                {
-                    foreach (String word in displayToUser)
+                    String[] words = text.Split(' ');
+                    StringBuilder prefixWords = new StringBuilder("");
+                    for (int i = 0; i < words.Length - 1; i++)
                     {
-                        textBox1.Text = newPrefix + word;
-                        displayToUser.Remove(word);
-                        break;
+                        prefixWords.Append(words[i] + " ");
+                    }
+                    String newPrefix = prefixWords.ToString();
+                    Console.WriteLine(newPrefix);
+
+                    if (displayToUser != null)
+                    {
+                        int temp = 1;
+                        foreach (String word in displayToUser)
+                        {
+                            Console.WriteLine("I am toggling - 1 - " + word);
+                            if (temp == counterForDisplay)
+                            {
+                                textBox1.Text = newPrefix + word;
+                                break;
+                            }
+                            else
+                            {
+                                temp++;
+                            }
+                        }
                     }
                 }
-            }
-            else if (!text.Contains(" "))
-            {
-                foreach (String word in displayToUser)
+                else if (!text.Contains(" "))
                 {
-                    textBox1.Text = word;
-                    displayToUser.Remove(word);
-                    break;
+                    int temp = 1;
+                    foreach (String word in displayToUser)
+                    {
+                        Console.WriteLine("I am toggling - 2 - " + word);
+                        if (temp == counterForDisplay)
+                        {
+                            textBox1.Text = word;
+                            break;
+                        }
+                        else
+                        {
+                            temp++;
+                        }
+                    }
                 }
             }
         }
