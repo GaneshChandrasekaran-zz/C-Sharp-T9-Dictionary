@@ -92,8 +92,6 @@ namespace Lab_2___T9_Dictionary
         /// </summary>
         public void readFromWordsText()
         {
-            Console.WriteLine(System.IO.Directory.GetCurrentDirectory());
-
             try
             {
                 StreamReader sr = new StreamReader("english-words.txt");
@@ -797,7 +795,10 @@ namespace Lab_2___T9_Dictionary
 
         /// <summary>
         /// Erases the last character in Non-Predictive Mode 
-        /// and the last space or last word in Predictive Mode
+        /// In Predictive mode if there is a space at the end, it will delete
+        /// the space and in addition to that the previous wor.
+        /// If there is no space at the end, it will delete the last char and behave
+        /// as if remaining characters were typed fresh.
         /// </summary>
         /// <param name="sender">Root of type hierarchy</param>
         /// <param name="e">Contains state information and event data
@@ -822,37 +823,85 @@ namespace Lab_2___T9_Dictionary
             else if (isPredictive)
             {
                 String text = textBox1.Text;
-                if (!text.Contains(" "))
+                if (text != "" && !text.Contains("-"))
                 {
-                    textBox1.Text = "";
-                }
-
-                // Trims the text string after the last space
-                else if (text.Contains(" "))
-                {
-                    // Deletes a space at the end of the text
-                    char[] forLastPosition = text.ToCharArray();
-                    if (forLastPosition[forLastPosition.Length - 1] == ' ')
+                    if (!text.Contains(" "))
                     {
                         textBox1.Text = text.Substring(0, text.Length - 1);
-                        return;
+                        String tempInput = inputKey.ToString();
+                        inputKey = new StringBuilder(tempInput.Substring(0, tempInput.Length - 1));
+                        validWords.TryGetValue(inputKey.ToString(), out displayToUser);
                     }
 
-                    // Deletes the word at the end of the text
-                    text = textBox1.Text;
-                    String[] words = text.Split(' ');
-                    StringBuilder trimmedText = new StringBuilder("");
-                    for (int i = 0; i < words.Length - 1; i++)
+                    // Trims the text string after the last space
+                    else if (text.Contains(" "))
                     {
-                        trimmedText.Append(words[i] + " ");
+                        // Deletes a space at the end of the text
+                        char[] forLastPosition = text.ToCharArray();
+                        if (forLastPosition[forLastPosition.Length - 1] == ' ')
+                        {
+                            String[] words = text.Split(' ');
+                            if (words.Length == 1)
+                            {
+                                textBox1.Text = "";
+                                inputKey = new StringBuilder("");
+                                displayToUser = null;
+                            }
+                            else
+                            {
+                                StringBuilder trimmedText = new StringBuilder("");
+                                for (int i = 0; i < words.Length - 2; i++)
+                                {
+                                    trimmedText.Append(words[i] + " ");
+                                }
+                                textBox1.Text = trimmedText.ToString();
+
+                            }
+                            inputKey = new StringBuilder("");
+                            displayToUser = null;
+                            return;
+                        }
+
+                        else
+                        {
+                            String getText = textBox1.Text;
+                            textBox1.Text = getText.Substring(0, getText.Length - 1);
+                            String tempInput = inputKey.ToString();
+                            inputKey = new StringBuilder(tempInput.Substring(0, tempInput.Length - 1));
+                            validWords.TryGetValue(inputKey.ToString(), out displayToUser);
+                        }
                     }
-
-                    textBox1.Text = trimmedText.ToString();
                 }
+                // FOR HYPHENS
+                // Trims the text string after the last space
+                else if (text.Contains("-"))
+                {
+                    if (text.Contains(" "))
+                    {
+                        // Deletes a space at the end of the text
+                        String[] words = text.Split(' ');
 
-                
-                inputKey = new StringBuilder("");
-                displayToUser = null;
+                        StringBuilder trimmedText = new StringBuilder("");
+                        for (int i = 0; i < words.Length - 1; i++)
+                        {
+                            trimmedText.Append(words[i] + " ");
+                        }
+                        textBox1.Text = trimmedText.ToString();
+
+                        inputKey = new StringBuilder("");
+                        displayToUser = null;
+                    }
+                    else if (!text.Contains(" "))
+                    {
+                        textBox1.Text = "";
+                        inputKey = new StringBuilder("");
+                        displayToUser = null;
+                    }
+                    // Enables toggling for the next word when a user types
+                    toggleNextWord = true;
+                    // Resets the counter value for next word
+                    counterForDisplay = 0;
+                }
             }
         }
 
