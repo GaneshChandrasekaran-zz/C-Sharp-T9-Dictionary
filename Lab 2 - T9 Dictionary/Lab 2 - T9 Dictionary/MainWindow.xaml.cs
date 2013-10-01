@@ -23,7 +23,6 @@ using System.IO;
 ///
 namespace Lab_2___T9_Dictionary
 {
-
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -93,9 +92,11 @@ namespace Lab_2___T9_Dictionary
         /// </summary>
         public void readFromWordsText()
         {
+            Console.WriteLine(System.IO.Directory.GetCurrentDirectory());
+
             try
             {
-                StreamReader sr = new StreamReader("C:\\Users\\GANESH\\Documents\\Visual Studio 2010\\Projects\\Lab 2 - T9 Dictionary\\Lab 2 - T9 Dictionary\\words.txt");
+                StreamReader sr = new StreamReader("english-words.txt");
 
                 while (true)
                 {
